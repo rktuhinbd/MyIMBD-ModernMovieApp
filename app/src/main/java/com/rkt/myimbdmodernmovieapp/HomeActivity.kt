@@ -1,6 +1,5 @@
 package com.rkt.myimbdmodernmovieapp
 
-import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -12,28 +11,18 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import com.rkt.myimbdmodernmovieapp.ui.theme.MyIMBDModernMovieAppTheme
 
-class MainActivity : ComponentActivity() {
+class HomeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             MyIMBDModernMovieAppTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    SplashScreen(
+                    HomeScreen(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(innerPadding)
-                    ) {
-                        //Redirect to home after splash screen loading ended
-                        Log.d("MainActivity", "SplashScreen finished!")
-
-                        startActivity(
-                            Intent(
-                                this@MainActivity,
-                                HomeActivity::class.java
-                            )
-                        )
-                    }
+                    )
                 }
             }
         }
