@@ -1,6 +1,12 @@
 package com.rkt.myimbdmodernmovieapp.model
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity
 data class Movies(
+    @PrimaryKey(autoGenerate = true)
+    var id: Int = 0,
     val actors: String,
     val director: String,
     val genres: List<String> = listOf(),

@@ -6,7 +6,7 @@ import retrofit2.http.GET
 
 interface ApiService {
 
-    @GET("https://raw.githubusercontent.com/erik-sytnyk/movies-list/master/db.json")
+    @GET("movies-list/master/db.json")
     suspend fun getAllScenario(): Response<MoviesResponse>
 
 }
