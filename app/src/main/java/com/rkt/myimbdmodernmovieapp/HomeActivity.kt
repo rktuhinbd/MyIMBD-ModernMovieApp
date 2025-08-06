@@ -99,7 +99,7 @@ class HomeActivity : ComponentActivity() {
 fun HomeScreen(modifier: Modifier, onItemClicked: () -> Unit) {
     var searchQuery by remember { mutableStateOf("") }
     var selectedGenre by remember { mutableStateOf("All") }
-    var viewAsGrid by remember { mutableStateOf(false) }
+    var viewAsGrid by remember { mutableStateOf(true) }
     var sortAscending by remember { mutableStateOf(true) }
 
     val genres = listOf("All", "Drama", "Crime", "Action", "Comedy")
@@ -291,36 +291,40 @@ fun MovieGridItem(movie: Movie, onItemClicked: () -> Unit) {
             .padding(4.dp),
         elevation = CardDefaults.cardElevation()
     ) {
-        Column(
-            modifier = Modifier.padding(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Image(
-                painter = painterResource(R.drawable.ic_film_reel),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(100.dp)
-                    .padding(bottom = 8.dp),
-                contentScale = ContentScale.Crop
-            )
 
-            Text(
-                text = movie.title,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 14.sp,
-                maxLines = 2,
-                modifier = Modifier.padding(bottom = 4.dp)
-            )
+        Box(
+            modifier = Modifier.padding(8.dp)
+        ){
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.ic_film_reel),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(100.dp)
+                        .padding(bottom = 8.dp),
+                    contentScale = ContentScale.Crop
+                )
 
-            MovieDescription(movie)
+                Text(
+                    text = movie.title,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp,
+                    maxLines = 2,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+
+                MovieDescription(movie)
+            }
 
             IconButton(
                 onClick = { isFavorite = !isFavorite },
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(20.dp).align(Alignment.TopEnd)
             ) {
                 Icon(
                     painter = painterResource(
-                        if (isFavorite) R.drawable.ic_favorite_filled_24
+                        id = if (isFavorite) R.drawable.ic_favorite_filled_24
                         else R.drawable.ic_favorite_outlined_24
                     ),
                     tint = Color(0xFFE53935),
@@ -347,8 +351,9 @@ fun MovieTitle() {
 @Composable
 fun MovieDescription(movie: Movie) {
     Row(
+        modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(movie.year, fontSize = 12.sp, color = Color.Gray)
         Text(movie.duration, fontSize = 12.sp, color = Color.Gray)
