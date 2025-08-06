@@ -1,4 +1,4 @@
-package com.rkt.myimbdmodernmovieapp.ui
+package com.rkt.myimbdmodernmovieapp.ui.screens
 
 import android.content.Intent
 import android.os.Bundle
@@ -60,15 +60,53 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.rkt.myimbdmodernmovieapp.Movie
 import com.rkt.myimbdmodernmovieapp.R
+import com.rkt.myimbdmodernmovieapp.model.Movies
 import com.rkt.myimbdmodernmovieapp.ui.theme.MyIMBDModernMovieAppTheme
 
-fun sampleMovies(): List<Movie> = listOf(
-    Movie("The Shawshank Redemption", "1994", "2H 22M", "Drama"),
-    Movie("The Godfather", "1972", "2H 55M", "Crime"),
-    Movie("The Dark Knight", "2008", "2H 32M", "Action"),
-    Movie("Forrest Gump", "1994", "2H 22M", "Comedy, Drama")
+fun sampleMovies(): List<Movies> = listOf(
+    Movies(
+        title = "The Shawshank Redemption",
+        year = "1994",
+        runtime = "2H 22M",
+        genres = listOf("Drama"),
+        plot = "plot",
+        posterUrl = "",
+        isFavorite = false,
+        actors = "Sheikh Zia",
+        director = "Shrek"
+    ), Movies(
+        title = "The Godfather",
+        year = "1972",
+        runtime = "2H 55M",
+        genres = listOf("Crime"),
+        plot = "plot",
+        posterUrl = "",
+        isFavorite = false,
+        actors = "Sheikh Zia",
+        director = "Shrek"
+    ), Movies(
+        title = "The Dark Knight",
+        year = "2008",
+        runtime = "2H 32M",
+        genres = listOf("Action"),
+        plot = "plot",
+        posterUrl = "",
+        isFavorite = true,
+        actors = "Sheikh Zia",
+        director = "Shrek"
+    ),
+    Movies(
+        title = "Forrest Gump",
+        year = "1994",
+        runtime = "2H 22M",
+        genres = listOf("Comedy", "Drama"),
+        plot = "plot",
+        posterUrl = "",
+        isFavorite = true,
+        actors = "Sheikh Zia",
+        director = "Shrek"
+    )
 )
 
 class HomeActivity : ComponentActivity() {
@@ -109,12 +147,18 @@ fun HomeScreen(modifier: Modifier, onItemClicked: () -> Unit) {
 
     val filteredMovies = allMovies
         .filter {
-            (selectedGenre == "All" || it.genre.contains(selectedGenre, ignoreCase = true)) &&
+            (selectedGenre == "All" || it.genres.any { genre ->
+                genre.equals(
+                    selectedGenre,
+                    ignoreCase = true
+                )
+            }) &&
                     it.title.contains(searchQuery, ignoreCase = true)
         }
         .sortedBy {
             if (sortAscending) it.year.toInt() else -it.year.toInt()
         }
+
 
     Column(modifier = modifier.padding(16.dp)) {
 
@@ -241,7 +285,7 @@ fun ViewToggleSwitch(
 
 
 @Composable
-fun MovieListUI(movie: Movie, onItemClicked: () -> Unit) {
+fun MovieListUI(movie: Movies, onItemClicked: () -> Unit) {
     var isFavorite by remember { mutableStateOf(movie.isFavorite) }
 
     Row(
@@ -283,7 +327,7 @@ fun MovieListUI(movie: Movie, onItemClicked: () -> Unit) {
 
 
 @Composable
-fun MovieGridItem(movie: Movie, onItemClicked: () -> Unit) {
+fun MovieGridItem(movie: Movies, onItemClicked: () -> Unit) {
     var isFavorite by remember { mutableStateOf(movie.isFavorite) }
 
     Card(
@@ -353,15 +397,15 @@ fun MovieTitle() {
 }
 
 @Composable
-fun MovieDescription(movie: Movie) {
+fun MovieDescription(movie: Movies) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(movie.year, fontSize = 12.sp, color = Color.Gray)
-        Text(movie.duration, fontSize = 12.sp, color = Color.Gray)
-        Text(movie.genre, fontSize = 12.sp, color = Color.Gray)
+        Text(movie.runtime, fontSize = 12.sp, color = Color.Gray)
+        Text(movie.genres.joinToString(", "), fontSize = 12.sp, color = Color.Gray)
     }
 }
 

@@ -1,4 +1,4 @@
-package com.rkt.myimbdmodernmovieapp.ui
+package com.rkt.myimbdmodernmovieapp.ui.screens
 
 import android.content.Intent
 import android.os.Bundle

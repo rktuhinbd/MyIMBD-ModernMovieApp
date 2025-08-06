@@ -14,7 +14,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MyIMBDModernMovieApp">
         <activity
-            android:name=".ui.MainActivity"
+            android:name=".ui.screens.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.MyIMBDModernMovieApp">
@@ -25,11 +25,11 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.HomeActivity"
+            android:name=".ui.screens.HomeActivity"
             android:exported="true"
             android:theme="@style/Theme.MyIMBDModernMovieApp" />
         <activity
-            android:name=".ui.MovieInfoActivity"
+            android:name=".ui.screens.MovieInfoActivity"
             android:exported="false"
             android:label="@string/title_activity_movie_info"
             android:theme="@style/Theme.MyIMBDModernMovieApp" />
