@@ -15,7 +15,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -36,7 +37,6 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rkt.myimbdmodernmovieapp.ui.theme.MyIMBDModernMovieAppTheme
@@ -53,7 +53,9 @@ class MovieInfoActivity : ComponentActivity() {
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(innerPadding)
-                    )
+                    ) {
+                        finish()
+                    }
                 }
             }
         }
@@ -61,13 +63,24 @@ class MovieInfoActivity : ComponentActivity() {
 }
 
 @Composable
-fun MovieInfoScreen(name: String, modifier: Modifier = Modifier) {
+fun MovieInfoScreen(name: String, modifier: Modifier = Modifier, onBackClick: () -> Unit) {
 
     var isFavorite by remember {
         mutableStateOf(false)
     }
 
     Column(modifier = modifier) {
+
+        IconButton(
+            onClick = onBackClick,
+            modifier = Modifier.size(48.dp) // default Material size
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.ArrowBack,
+                contentDescription = "Back",
+                tint = MaterialTheme.colorScheme.onBackground
+            )
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -189,6 +202,8 @@ fun MovieInfoScreenPreview() {
         MovieInfoScreen(
             name = "Shawshank Redemption",
             modifier = Modifier.fillMaxSize()
-        )
+        ) {
+
+        }
     }
 }

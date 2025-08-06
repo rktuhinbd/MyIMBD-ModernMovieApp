@@ -193,13 +193,11 @@ fun MovieDescription() {
     }
 }
 
-@Preview(showBackground = true)
+/*@Preview(showBackground = true)
 @Composable
 fun MovieListItemPreview() {
-    MovieListUI() {
-
-    }
-}
+    MovieListUI() { }
+}*/
 
 @Preview(showBackground = true)
 @Composable
