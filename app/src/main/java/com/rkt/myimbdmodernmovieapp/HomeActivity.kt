@@ -7,10 +7,12 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,9 +21,27 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Card
+import androidx.compose.material.icons.Icons
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,6 +51,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -40,6 +61,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rkt.myimbdmodernmovieapp.ui.theme.MyIMBDModernMovieAppTheme
+
+fun sampleMovies(): List<Movie> = listOf(
+    Movie("The Shawshank Redemption", "1994", "2H 22M", "Drama"),
+    Movie("The Godfather", "1972", "2H 55M", "Crime"),
+    Movie("The Dark Knight", "2008", "2H 32M", "Action"),
+    Movie("Forrest Gump", "1994", "2H 22M", "Comedy, Drama")
+)
 
 class HomeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -69,30 +97,150 @@ class HomeActivity : ComponentActivity() {
 
 @Composable
 fun HomeScreen(modifier: Modifier, onItemClicked: () -> Unit) {
-    Column(modifier = modifier) {
-        LazyColumn {
-            items(4) {
-                MovieListUI() {
-                    onItemClicked.invoke()
+    var searchQuery by remember { mutableStateOf("") }
+    var selectedGenre by remember { mutableStateOf("All") }
+    var viewAsGrid by remember { mutableStateOf(false) }
+    var sortAscending by remember { mutableStateOf(true) }
+
+    val genres = listOf("All", "Drama", "Crime", "Action", "Comedy")
+    val allMovies = remember { sampleMovies() }
+
+    val filteredMovies = allMovies
+        .filter {
+            (selectedGenre == "All" || it.genre.contains(selectedGenre, ignoreCase = true)) &&
+                    it.title.contains(searchQuery, ignoreCase = true)
+        }
+        .sortedBy {
+            if (sortAscending) it.year.toInt() else -it.year.toInt()
+        }
+
+    Column(modifier = modifier.padding(16.dp)) {
+
+        // 🔍 Search
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = { searchQuery = it },
+            placeholder = { Text("Search movies...") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp),
+            singleLine = true,
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) }
+        )
+
+        // 🧰 Filter & Controls
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+
+            // Genre Dropdown
+            var expanded by remember { mutableStateOf(false) }
+
+            Box {
+                OutlinedButton(onClick = { expanded = true }) {
+                    Text(text = selectedGenre)
+                    Icon(Icons.Default.ArrowDropDown, contentDescription = null)
                 }
-                Box(
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .fillMaxWidth()
-                        .height(1.dp)
-                        .background(color = Color.LightGray)
-                )
+
+                DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                    genres.forEach { genre ->
+                        DropdownMenuItem(
+                            text = { Text(genre) },
+                            onClick = {
+                                selectedGenre = genre
+                                expanded = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            ViewToggleSwitch(
+                viewAsGrid = viewAsGrid,
+                onToggle = { viewAsGrid = it }
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // 🎬 Display Movies as List or Grid
+        if (viewAsGrid) {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(vertical = 8.dp)
+            ) {
+                items(filteredMovies) { movie ->
+                    MovieGridItem(movie, onItemClicked)
+                }
+            }
+        } else {
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                items(filteredMovies) { movie ->
+                    MovieListUI(movie, onItemClicked)
+                }
             }
         }
     }
 }
 
 @Composable
-fun MovieListUI(onItemClicked: () -> Unit) {
+fun ViewToggleSwitch(
+    viewAsGrid: Boolean,
+    onToggle: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .wrapContentWidth()
+            .height(40.dp)
+            .clip(RoundedCornerShape(50))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(50))
+    ) {
+        val buttonModifier = Modifier.clip(RoundedCornerShape(50))
 
-    var isFavorite by remember {
-        mutableStateOf(false)
+        Button(
+            onClick = { onToggle(false) },
+            modifier = buttonModifier,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (!viewAsGrid) MaterialTheme.colorScheme.primary else Color.Transparent,
+                contentColor = if (!viewAsGrid) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+            ),
+            elevation = null
+        ) {
+            Icon(
+                modifier = Modifier.size(24.dp),
+                painter = painterResource(R.drawable.ic_list_view),
+                contentDescription = "List View"
+            )
+        }
+
+        Button(
+            onClick = { onToggle(true) },
+            modifier = buttonModifier,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (viewAsGrid) MaterialTheme.colorScheme.primary else Color.Transparent,
+                contentColor = if (viewAsGrid) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+            ),
+            elevation = null
+        ) {
+            Icon(
+                modifier = Modifier.size(24.dp),
+                painter = painterResource(R.drawable.ic_grid_view),
+                contentDescription = "Grid View"
+            )
+        }
     }
+}
+
+
+@Composable
+fun MovieListUI(movie: Movie, onItemClicked: () -> Unit) {
+    var isFavorite by remember { mutableStateOf(movie.isFavorite) }
 
     Row(
         modifier = Modifier
@@ -110,29 +258,19 @@ fun MovieListUI(onItemClicked: () -> Unit) {
 
         Spacer(modifier = Modifier.width(16.dp))
 
-        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
-
-            MovieTitle()
-
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = movie.title, style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
-
-            MovieDescription()
+            MovieDescription(movie)
         }
 
         Spacer(modifier = Modifier.width(16.dp))
 
-        IconButton(
-            onClick = {
-                isFavorite = !isFavorite
-            },
-            modifier = Modifier.size(24.dp)
-        ) {
+        IconButton(onClick = { isFavorite = !isFavorite }) {
             Icon(
                 painter = painterResource(
-                    if (isFavorite)
-                        R.drawable.ic_favorite_filled_24
-                    else
-                        R.drawable.ic_favorite_outlined_24
+                    if (isFavorite) R.drawable.ic_favorite_filled_24
+                    else R.drawable.ic_favorite_outlined_24
                 ),
                 tint = Color(0xFFE53935),
                 contentDescription = null
@@ -140,6 +278,59 @@ fun MovieListUI(onItemClicked: () -> Unit) {
         }
     }
 }
+
+
+@Composable
+fun MovieGridItem(movie: Movie, onItemClicked: () -> Unit) {
+    var isFavorite by remember { mutableStateOf(movie.isFavorite) }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onItemClicked() }
+            .padding(4.dp),
+        elevation = CardDefaults.cardElevation()
+    ) {
+        Column(
+            modifier = Modifier.padding(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Image(
+                painter = painterResource(R.drawable.ic_film_reel),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(100.dp)
+                    .padding(bottom = 8.dp),
+                contentScale = ContentScale.Crop
+            )
+
+            Text(
+                text = movie.title,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 14.sp,
+                maxLines = 2,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+
+            MovieDescription(movie)
+
+            IconButton(
+                onClick = { isFavorite = !isFavorite },
+                modifier = Modifier.size(20.dp)
+            ) {
+                Icon(
+                    painter = painterResource(
+                        if (isFavorite) R.drawable.ic_favorite_filled_24
+                        else R.drawable.ic_favorite_outlined_24
+                    ),
+                    tint = Color(0xFFE53935),
+                    contentDescription = "Favorite"
+                )
+            }
+        }
+    }
+}
+
 
 @Composable
 fun MovieTitle() {
@@ -154,50 +345,17 @@ fun MovieTitle() {
 }
 
 @Composable
-fun MovieDescription() {
+fun MovieDescription(movie: Movie) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Start
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Text(
-            text = "1992",
-            color = Color.Gray,
-            style = TextStyle(
-                fontSize = 12.sp,
-                fontWeight = FontWeight(500)
-            )
-        )
-
-        Spacer(modifier = Modifier.width(12.dp))
-
-        Text(
-            text = "2H 12M",
-            color = Color.Gray,
-            style = TextStyle(
-                fontSize = 12.sp,
-                fontWeight = FontWeight(400)
-            )
-        )
-
-        Spacer(modifier = Modifier.width(12.dp))
-
-        Text(
-            text = "Drama, Crime",
-            color = Color.Gray,
-            style = TextStyle(
-                fontSize = 12.sp,
-                fontWeight = FontWeight(400)
-            )
-        )
+        Text(movie.year, fontSize = 12.sp, color = Color.Gray)
+        Text(movie.duration, fontSize = 12.sp, color = Color.Gray)
+        Text(movie.genre, fontSize = 12.sp, color = Color.Gray)
     }
 }
 
-/*@Preview(showBackground = true)
-@Composable
-fun MovieListItemPreview() {
-    MovieListUI() { }
-}*/
 
 @Preview(showBackground = true)
 @Composable
@@ -206,3 +364,9 @@ fun HomeScreenPreview() {
 
     }
 }
+
+/*@Preview(showBackground = true)
+@Composable
+fun MovieListItemPreview() {
+    MovieListUI() { }
+}*/
