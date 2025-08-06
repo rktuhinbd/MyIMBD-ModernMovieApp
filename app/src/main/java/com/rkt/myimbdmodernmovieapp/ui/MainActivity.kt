@@ -1,4 +1,4 @@
-package com.rkt.myimbdmodernmovieapp
+package com.rkt.myimbdmodernmovieapp.ui
 
 import android.content.Intent
 import android.os.Bundle
@@ -22,6 +22,7 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.rkt.myimbdmodernmovieapp.R
 import com.rkt.myimbdmodernmovieapp.ui.theme.MyIMBDModernMovieAppTheme
 import kotlinx.coroutines.delay
 

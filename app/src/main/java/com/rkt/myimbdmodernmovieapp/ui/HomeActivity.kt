@@ -1,4 +1,4 @@
-package com.rkt.myimbdmodernmovieapp
+package com.rkt.myimbdmodernmovieapp.ui
 
 import android.content.Intent
 import android.os.Bundle
@@ -28,12 +28,12 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Card
-import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -60,6 +60,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.rkt.myimbdmodernmovieapp.Movie
+import com.rkt.myimbdmodernmovieapp.R
 import com.rkt.myimbdmodernmovieapp.ui.theme.MyIMBDModernMovieAppTheme
 
 fun sampleMovies(): List<Movie> = listOf(
@@ -294,7 +296,7 @@ fun MovieGridItem(movie: Movie, onItemClicked: () -> Unit) {
 
         Box(
             modifier = Modifier.padding(8.dp)
-        ){
+        ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -320,7 +322,9 @@ fun MovieGridItem(movie: Movie, onItemClicked: () -> Unit) {
 
             IconButton(
                 onClick = { isFavorite = !isFavorite },
-                modifier = Modifier.size(20.dp).align(Alignment.TopEnd)
+                modifier = Modifier
+                    .size(20.dp)
+                    .align(Alignment.TopEnd)
             ) {
                 Icon(
                     painter = painterResource(
