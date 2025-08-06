@@ -1,12 +1,8 @@
-package com.rkt.myimbdmodernmovieapp.data.service
+package com.rkt.myimbdmodernmovieapp.domain.repo
 
 import com.rkt.myimbdmodernmovieapp.data.dto.MoviesResponse
 import retrofit2.Response
-import retrofit2.http.GET
 
-interface ApiService {
-
-    @GET("movies-list/master/db.json")
+interface ApiRepo {
     suspend fun getMovieList(): Response<MoviesResponse>
-
 }
