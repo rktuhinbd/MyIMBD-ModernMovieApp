@@ -3,7 +3,7 @@ package com.rkt.myimbdmodernmovieapp.domain.use_case
 
 import com.rkt.myimbdmodernmovieapp.base.ErrorHandler
 import com.rkt.myimbdmodernmovieapp.base.ResponseHandler
-import com.rkt.myimbdmodernmovieapp.data.local.dao.MovieDao
+import com.rkt.myimbdmodernmovieapp.data.local.dao.RoomDao
 import com.rkt.myimbdmodernmovieapp.domain.repo.ApiRepo
 import com.rkt.myimbdmodernmovieapp.model.GenreEntity
 import com.rkt.myimbdmodernmovieapp.model.MovieAndGenreResult
@@ -16,7 +16,7 @@ import javax.inject.Inject
 
 class GetMoviesUseCase @Inject constructor(
     private val repo: ApiRepo,
-    private val dao: MovieDao
+    private val dao: RoomDao
 ) {
     operator fun invoke(): Flow<ResponseHandler<MovieAndGenreResult>> = flow {
         try {

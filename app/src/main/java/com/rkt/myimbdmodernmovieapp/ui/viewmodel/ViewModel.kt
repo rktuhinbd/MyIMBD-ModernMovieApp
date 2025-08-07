@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.rkt.myimbdmodernmovieapp.base.ResponseHandler
 import com.rkt.myimbdmodernmovieapp.base.UIState
 import com.rkt.myimbdmodernmovieapp.domain.use_case.GetMoviesUseCase
+import com.rkt.myimbdmodernmovieapp.domain.use_case.UpdateFavoriteUseCase
 import com.rkt.myimbdmodernmovieapp.model.GenreEntity
 import com.rkt.myimbdmodernmovieapp.model.MovieAndGenreResult
 import com.rkt.myimbdmodernmovieapp.model.MoviesEntity
@@ -14,11 +15,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ViewModel @Inject constructor(
-    private val getMoviesUseCase: GetMoviesUseCase
+    private val getMoviesUseCase: GetMoviesUseCase,
+    private val updateFavoriteUseCase: UpdateFavoriteUseCase
 ) : ViewModel() {
 
     private val tag = "ViewModel"
@@ -26,6 +29,7 @@ class ViewModel @Inject constructor(
     fun onUiEvent(event: ApiUiEvent) {
         when (event) {
             is ApiUiEvent.GetMovieList -> getMovieList()
+            is ApiUiEvent.UpdateFavorite -> updateFavorite(event.id, event.isFavorite)
         }
     }
 
@@ -60,8 +64,42 @@ class ViewModel @Inject constructor(
             }
         }.launchIn(viewModelScope)
     }
+
+    private fun updateFavorite(id: Int, favorite: Boolean) {
+        viewModelScope.launch {
+            try {
+                val success = updateFavoriteUseCase(id, favorite)
+                if (success) {
+                    Log.d(tag, "Favorite updated successfully for movie id = $id")
+
+                    // ✅ Update the single movie in current state without refetching everything
+                    val currentState = _movieListObserver.value
+                    if (currentState is UIState.Success) {
+                        val currentData = currentState.data
+
+                        if(currentData == null) return@launch
+
+                        val updatedMovies = currentData.movies.map { movie ->
+                            if (movie.id == id) movie.copy(isFavorite = favorite)
+                            else movie
+                        }
+
+                        _movieListObserver.value = UIState.Success(
+                            currentData.copy(movies = updatedMovies)
+                        )
+                    }
+                } else {
+                    Log.w(tag, "Favorite update failed for movie id = $id")
+                }
+            } catch (e: Exception) {
+                Log.e(tag, "Error updating favorite: ${e.localizedMessage}")
+            }
+        }
+    }
+
 }
 
 sealed class ApiUiEvent {
     data object GetMovieList : ApiUiEvent()
+    data class UpdateFavorite(val id: Int, val isFavorite: Boolean) : ApiUiEvent()
 }

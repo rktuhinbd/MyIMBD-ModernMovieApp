@@ -10,7 +10,7 @@ import com.rkt.myimbdmodernmovieapp.model.GenreEntity
 import com.rkt.myimbdmodernmovieapp.model.MoviesEntity
 
 @Dao
-interface MovieDao {
+interface RoomDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMovies(movies: List<MoviesEntity>)

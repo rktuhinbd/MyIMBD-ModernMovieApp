@@ -81,16 +81,17 @@ class HomeActivity : ComponentActivity() {
                     HomeScreen(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(innerPadding)
-                    ) {
-                        //Redirect to movie info activity
-                        startActivity(
-                            Intent(
-                                this@HomeActivity,
-                                MovieInfoActivity::class.java
+                            .padding(innerPadding),
+                        onItemClicked = {
+                            //Redirect to movie info activity
+                            startActivity(
+                                Intent(
+                                    this@HomeActivity,
+                                    MovieInfoActivity::class.java
+                                )
                             )
-                        )
-                    }
+                        }
+                    )
                 }
             }
         }
@@ -100,7 +101,7 @@ class HomeActivity : ComponentActivity() {
 @Composable
 fun HomeScreen(
     modifier: Modifier,
-    viewModel: ViewModel = hiltViewModel(), // <-- Inject ViewModel,
+    viewModel: ViewModel = hiltViewModel(), // <-- Inject ViewModel
     onItemClicked: () -> Unit
 ) {
 
@@ -115,27 +116,8 @@ fun HomeScreen(
     var viewAsGrid by remember { mutableStateOf(true) }
     var sortAscending by remember { mutableStateOf(true) }
 
-    var genres = remember { movieListState.data?.genres ?: emptyList() }
-    var allMovies = remember { movieListState.data?.movies ?: emptyList() }
-
-    when (movieListState) {
-        is UIState.Loading -> {
-
-        }
-
-        is UIState.Success -> {
-            genres = remember { movieListState.data?.genres ?: emptyList() }
-            allMovies = remember { movieListState.data?.movies ?: emptyList() }
-        }
-
-        is UIState.Error -> {
-
-        }
-
-        else -> {
-
-        }
-    }
+    val genres = movieListState.data?.genres ?: emptyList()
+    val allMovies = movieListState.data?.movies ?: emptyList()
 
     val filteredMovies = allMovies
         .filter {
@@ -211,13 +193,34 @@ fun HomeScreen(
                 contentPadding = PaddingValues(vertical = 8.dp)
             ) {
                 items(filteredMovies) { movie ->
-                    MovieGridItem(movie, onItemClicked)
+                    MovieGridUI(
+                        movie,
+                        onItemClicked,
+                        onFavoriteClicked = {
+                            viewModel.onUiEvent(
+                                ApiUiEvent.UpdateFavorite(
+                                    movie.id,
+                                    !movie.isFavorite
+                                )
+                            )
+                        })
                 }
             }
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(filteredMovies) { movie ->
-                    MovieListUI(movie, onItemClicked)
+                    MovieListUI(
+                        movie,
+                        onItemClicked,
+                        onFavoriteClicked = {
+                            viewModel.onUiEvent(
+                                ApiUiEvent.UpdateFavorite(
+                                    movie.id,
+                                    !movie.isFavorite
+                                )
+                            )
+                        }
+                    )
                 }
             }
         }
@@ -275,8 +278,7 @@ fun ViewToggleSwitch(
 
 
 @Composable
-fun MovieListUI(movie: MoviesEntity, onItemClicked: () -> Unit) {
-    var isFavorite by remember { mutableStateOf(movie.isFavorite) }
+fun MovieListUI(movie: MoviesEntity, onItemClicked: () -> Unit, onFavoriteClicked: () -> Unit) {
 
     Row(
         modifier = Modifier
@@ -302,10 +304,12 @@ fun MovieListUI(movie: MoviesEntity, onItemClicked: () -> Unit) {
 
         Spacer(modifier = Modifier.width(16.dp))
 
-        IconButton(onClick = { isFavorite = !isFavorite }) {
+        IconButton(onClick = {
+            onFavoriteClicked.invoke()
+        }) {
             Icon(
                 painter = painterResource(
-                    if (isFavorite) R.drawable.ic_favorite_filled_24
+                    if (movie.isFavorite) R.drawable.ic_favorite_filled_24
                     else R.drawable.ic_favorite_outlined_24
                 ),
                 tint = Color(0xFFE53935),
@@ -317,8 +321,7 @@ fun MovieListUI(movie: MoviesEntity, onItemClicked: () -> Unit) {
 
 
 @Composable
-fun MovieGridItem(movie: MoviesEntity, onItemClicked: () -> Unit) {
-    var isFavorite by remember { mutableStateOf(movie.isFavorite) }
+fun MovieGridUI(movie: MoviesEntity, onItemClicked: () -> Unit, onFavoriteClicked: () -> Unit) {
 
     Card(
         modifier = Modifier
@@ -355,14 +358,16 @@ fun MovieGridItem(movie: MoviesEntity, onItemClicked: () -> Unit) {
             }
 
             IconButton(
-                onClick = { isFavorite = !isFavorite },
+                onClick = {
+                    onFavoriteClicked.invoke()
+                },
                 modifier = Modifier
                     .size(20.dp)
                     .align(Alignment.TopEnd)
             ) {
                 Icon(
                     painter = painterResource(
-                        id = if (isFavorite) R.drawable.ic_favorite_filled_24
+                        id = if (movie.isFavorite) R.drawable.ic_favorite_filled_24
                         else R.drawable.ic_favorite_outlined_24
                     ),
                     tint = Color(0xFFE53935),
@@ -390,7 +395,5 @@ fun MovieDescription(movie: MoviesEntity) {
 @Preview(showBackground = true)
 @Composable
 fun HomeScreenPreview() {
-    HomeScreen(modifier = Modifier.fillMaxSize()) {
-
-    }
+    HomeScreen(modifier = Modifier.fillMaxSize(), onItemClicked = {})
 }
