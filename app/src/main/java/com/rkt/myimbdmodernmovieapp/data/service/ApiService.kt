@@ -1,6 +1,6 @@
 package com.rkt.myimbdmodernmovieapp.data.service
 
-import com.rkt.myimbdmodernmovieapp.data.dto.MoviesResponse
+import com.rkt.myimbdmodernmovieapp.data.remote.MoviesResponse
 import retrofit2.Response
 import retrofit2.http.GET
 

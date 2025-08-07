@@ -32,7 +32,7 @@ object ApplicationModule {
     }
 
     @Provides
-    fun providesAiService(@RetrofitForApi retrofit: Retrofit): ApiService {
+    fun providesApiService(@RetrofitForApi retrofit: Retrofit): ApiService {
         return retrofit.create(ApiService::class.java)
     }
 }

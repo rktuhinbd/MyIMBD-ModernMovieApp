@@ -45,6 +45,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -55,60 +56,19 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rkt.myimbdmodernmovieapp.R
+import com.rkt.myimbdmodernmovieapp.base.UIState
 import com.rkt.myimbdmodernmovieapp.model.MoviesEntity
 import com.rkt.myimbdmodernmovieapp.ui.theme.MyIMBDModernMovieAppTheme
+import com.rkt.myimbdmodernmovieapp.ui.viewmodel.ApiUiEvent
+import com.rkt.myimbdmodernmovieapp.ui.viewmodel.ViewModel
 import dagger.hilt.android.AndroidEntryPoint
-
-fun sampleMovies(): List<MoviesEntity> = listOf(
-    MoviesEntity(
-        title = "The Shawshank Redemption",
-        year = "1994",
-        runtime = "2H 22M",
-        genres = "Drama",
-        plot = "plot",
-        posterUrl = "",
-        isFavorite = false,
-        actors = "Sheikh Zia",
-        director = "Shrek"
-    ), MoviesEntity(
-        title = "The Godfather",
-        year = "1972",
-        runtime = "2H 55M",
-        genres = "Crime",
-        plot = "plot",
-        posterUrl = "",
-        isFavorite = false,
-        actors = "Sheikh Zia",
-        director = "Shrek"
-    ), MoviesEntity(
-        title = "The Dark Knight",
-        year = "2008",
-        runtime = "2H 32M",
-        genres = "Action",
-        plot = "plot",
-        posterUrl = "",
-        isFavorite = true,
-        actors = "Sheikh Zia",
-        director = "Shrek"
-    ),
-    MoviesEntity(
-        title = "Forrest Gump",
-        year = "1994",
-        runtime = "2H 22M",
-        genres = "Comedy, Drama",
-        plot = "plot",
-        posterUrl = "",
-        isFavorite = true,
-        actors = "Sheikh Zia",
-        director = "Shrek"
-    )
-)
 
 @AndroidEntryPoint
 class HomeActivity : ComponentActivity() {
@@ -138,14 +98,44 @@ class HomeActivity : ComponentActivity() {
 }
 
 @Composable
-fun HomeScreen(modifier: Modifier, onItemClicked: () -> Unit) {
+fun HomeScreen(
+    modifier: Modifier,
+    viewModel: ViewModel = hiltViewModel(), // <-- Inject ViewModel,
+    onItemClicked: () -> Unit
+) {
+
+    LaunchedEffect(key1 = Unit) {
+        viewModel.onUiEvent(event = ApiUiEvent.GetMovieList)
+    }
+
+    val movieListState by viewModel.movieListObserver.collectAsStateWithLifecycle()
+
     var searchQuery by remember { mutableStateOf("") }
     var selectedGenre by remember { mutableStateOf("All") }
     var viewAsGrid by remember { mutableStateOf(true) }
     var sortAscending by remember { mutableStateOf(true) }
 
-    val genres = listOf("All", "Drama", "Crime", "Action", "Comedy")
-    val allMovies = remember { sampleMovies() }
+    var genres = remember { movieListState.data?.genres ?: emptyList() }
+    var allMovies = remember { movieListState.data?.movies ?: emptyList() }
+
+    when (movieListState) {
+        is UIState.Loading -> {
+
+        }
+
+        is UIState.Success -> {
+            genres = remember { movieListState.data?.genres ?: emptyList() }
+            allMovies = remember { movieListState.data?.movies ?: emptyList() }
+        }
+
+        is UIState.Error -> {
+
+        }
+
+        else -> {
+
+        }
+    }
 
     val filteredMovies = allMovies
         .filter {
@@ -159,7 +149,6 @@ fun HomeScreen(modifier: Modifier, onItemClicked: () -> Unit) {
         .sortedBy {
             if (sortAscending) it.year.toInt() else -it.year.toInt()
         }
-
 
     Column(modifier = modifier.padding(16.dp)) {
 
@@ -194,9 +183,9 @@ fun HomeScreen(modifier: Modifier, onItemClicked: () -> Unit) {
                 DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                     genres.forEach { genre ->
                         DropdownMenuItem(
-                            text = { Text(genre) },
+                            text = { Text(genre.genre) },
                             onClick = {
-                                selectedGenre = genre
+                                selectedGenre = genre.genre
                                 expanded = false
                             }
                         )
@@ -384,19 +373,6 @@ fun MovieGridItem(movie: MoviesEntity, onItemClicked: () -> Unit) {
     }
 }
 
-
-@Composable
-fun MovieTitle() {
-    Text(
-        text = "The Shawshank Redemption",
-        color = Color.Black,
-        style = TextStyle(
-            fontSize = 18.sp,
-            fontWeight = FontWeight(600)
-        )
-    )
-}
-
 @Composable
 fun MovieDescription(movie: MoviesEntity) {
     Row(
@@ -418,9 +394,3 @@ fun HomeScreenPreview() {
 
     }
 }
-
-/*@Preview(showBackground = true)
-@Composable
-fun MovieListItemPreview() {
-    MovieListUI() { }
-}*/

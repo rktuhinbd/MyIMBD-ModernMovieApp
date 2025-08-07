@@ -3,11 +3,12 @@ package com.rkt.myimbdmodernmovieapp.ui.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.gson.GsonBuilder
 import com.rkt.myimbdmodernmovieapp.base.ResponseHandler
 import com.rkt.myimbdmodernmovieapp.base.UIState
-import com.rkt.myimbdmodernmovieapp.data.dto.MoviesResponse
 import com.rkt.myimbdmodernmovieapp.domain.use_case.GetMoviesUseCase
+import com.rkt.myimbdmodernmovieapp.model.GenreEntity
+import com.rkt.myimbdmodernmovieapp.model.MovieAndGenreResult
+import com.rkt.myimbdmodernmovieapp.model.MoviesEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,7 +30,7 @@ class ViewModel @Inject constructor(
     }
 
     private val _movieListObserver =
-        MutableStateFlow<UIState<MoviesResponse>>(UIState.Empty())
+        MutableStateFlow<UIState<MovieAndGenreResult>>(UIState.Empty())
     val movieListObserver = _movieListObserver.asStateFlow()
 
     private fun getMovieList() {
@@ -42,17 +43,12 @@ class ViewModel @Inject constructor(
 
                 is ResponseHandler.Success -> {
                     // Extract data from the Response body
-                    val apiResponse =
-                        response.data?.body() // This should extract the actual response body
-                    if (apiResponse != null) {
-                        _movieListObserver.value = UIState.Success(apiResponse)
+                    val dataResponse =
+                        response.data // This should extract the actual response body
+
+                    if (dataResponse?.movies != null) {
+                        _movieListObserver.value = UIState.Success(dataResponse)
                     }
-                    Log.d(
-                        tag,
-                        "Success :: movie_list -> ${
-                            GsonBuilder().setPrettyPrinting().create().toJson(apiResponse)
-                        }"
-                    )
                 }
 
                 is ResponseHandler.Error -> {

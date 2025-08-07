@@ -47,8 +47,6 @@ class MainActivity : ComponentActivity() {
                             .padding(innerPadding)
                     ) {
                         //Redirect to home after splash screen loading ended
-                        Log.d("MainActivity", "SplashScreen finished!")
-
                         startActivity(
                             Intent(
                                 this@MainActivity,
@@ -78,13 +76,8 @@ fun SplashScreen(
 
     // Navigate after API succeeds
     LaunchedEffect(state) {
-        if (state is UIState.Success) {
-            delay(1500) // Optional delay for smoothness
-            onSplashFinished()
-        } else if (state is UIState.Error) {
-            Log.e("SplashScreen", "API error: ${(state as UIState.Error)}")
-            // You can also navigate or show error UI here
-        }
+        delay(2500) // Optional delay for smoothness
+        onSplashFinished.invoke()
     }
 
     Column(

@@ -1,4 +1,4 @@
-package com.rkt.myimbdmodernmovieapp.data.dto
+package com.rkt.myimbdmodernmovieapp.data.remote
 
 
 import com.google.gson.annotations.SerializedName
