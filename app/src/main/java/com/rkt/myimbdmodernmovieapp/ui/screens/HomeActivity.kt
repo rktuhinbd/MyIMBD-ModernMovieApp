@@ -62,6 +62,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rkt.myimbdmodernmovieapp.R
 import com.rkt.myimbdmodernmovieapp.model.Movies
+import dagger.hilt.android.AndroidEntryPoint
 import com.rkt.myimbdmodernmovieapp.ui.theme.MyIMBDModernMovieAppTheme
 
 fun sampleMovies(): List<Movies> = listOf(
@@ -109,6 +110,7 @@ fun sampleMovies(): List<Movies> = listOf(
     )
 )
 
+@AndroidEntryPoint
 class HomeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

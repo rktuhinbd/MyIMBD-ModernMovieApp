@@ -1,4 +1,4 @@
-package com.rkt.myimbdmodernmovieapp
+package com.rkt.myimbdmodernmovieapp.base
 
 sealed class ResponseHandler<T>(val data: T? = null, val error: ErrorHandler? = null) {
     class Success<T>(data: T? = null) : ResponseHandler<T>(data = data)

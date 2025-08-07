@@ -1,4 +1,4 @@
-package com.rkt.myimbdmodernmovieapp
+package com.rkt.myimbdmodernmovieapp.base
 
 import android.text.TextUtils
 import okhttp3.Response

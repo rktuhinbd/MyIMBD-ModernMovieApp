@@ -1,4 +1,4 @@
-package com.rkt.myimbdmodernmovieapp
+package com.rkt.myimbdmodernmovieapp.base
 
 sealed class UIState<T>(
     var data: T? = null,

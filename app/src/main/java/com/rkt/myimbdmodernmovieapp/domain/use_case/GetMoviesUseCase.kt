@@ -1,8 +1,8 @@
 package com.rkt.myimbdmodernmovieapp.domain.use_case
 
 
-import com.rkt.myimbdmodernmovieapp.ErrorHandler
-import com.rkt.myimbdmodernmovieapp.ResponseHandler
+import com.rkt.myimbdmodernmovieapp.base.ErrorHandler
+import com.rkt.myimbdmodernmovieapp.base.ResponseHandler
 import com.rkt.myimbdmodernmovieapp.domain.repo.ApiRepo
 import kotlinx.coroutines.flow.flow
 import retrofit2.HttpException

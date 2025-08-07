@@ -4,8 +4,8 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.GsonBuilder
-import com.rkt.myimbdmodernmovieapp.ResponseHandler
-import com.rkt.myimbdmodernmovieapp.UIState
+import com.rkt.myimbdmodernmovieapp.base.ResponseHandler
+import com.rkt.myimbdmodernmovieapp.base.UIState
 import com.rkt.myimbdmodernmovieapp.data.dto.MoviesResponse
 import com.rkt.myimbdmodernmovieapp.domain.use_case.GetMoviesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
