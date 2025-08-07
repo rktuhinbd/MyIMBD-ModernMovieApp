@@ -61,47 +61,47 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rkt.myimbdmodernmovieapp.R
-import com.rkt.myimbdmodernmovieapp.model.Movies
-import dagger.hilt.android.AndroidEntryPoint
+import com.rkt.myimbdmodernmovieapp.model.MoviesEntity
 import com.rkt.myimbdmodernmovieapp.ui.theme.MyIMBDModernMovieAppTheme
+import dagger.hilt.android.AndroidEntryPoint
 
-fun sampleMovies(): List<Movies> = listOf(
-    Movies(
+fun sampleMovies(): List<MoviesEntity> = listOf(
+    MoviesEntity(
         title = "The Shawshank Redemption",
         year = "1994",
         runtime = "2H 22M",
-        genres = listOf("Drama"),
+        genres = "Drama",
         plot = "plot",
         posterUrl = "",
         isFavorite = false,
         actors = "Sheikh Zia",
         director = "Shrek"
-    ), Movies(
+    ), MoviesEntity(
         title = "The Godfather",
         year = "1972",
         runtime = "2H 55M",
-        genres = listOf("Crime"),
+        genres = "Crime",
         plot = "plot",
         posterUrl = "",
         isFavorite = false,
         actors = "Sheikh Zia",
         director = "Shrek"
-    ), Movies(
+    ), MoviesEntity(
         title = "The Dark Knight",
         year = "2008",
         runtime = "2H 32M",
-        genres = listOf("Action"),
+        genres = "Action",
         plot = "plot",
         posterUrl = "",
         isFavorite = true,
         actors = "Sheikh Zia",
         director = "Shrek"
     ),
-    Movies(
+    MoviesEntity(
         title = "Forrest Gump",
         year = "1994",
         runtime = "2H 22M",
-        genres = listOf("Comedy", "Drama"),
+        genres = "Comedy, Drama",
         plot = "plot",
         posterUrl = "",
         isFavorite = true,
@@ -149,13 +149,12 @@ fun HomeScreen(modifier: Modifier, onItemClicked: () -> Unit) {
 
     val filteredMovies = allMovies
         .filter {
-            (selectedGenre == "All" || it.genres.any { genre ->
-                genre.equals(
-                    selectedGenre,
-                    ignoreCase = true
-                )
-            }) &&
-                    it.title.contains(searchQuery, ignoreCase = true)
+            // Convert comma-separated genres to a list and trim whitespace
+            val genreList = it.genres.split(",").map { genre -> genre.trim() }
+
+            (selectedGenre == "All" || genreList.any { genre ->
+                genre.equals(selectedGenre, ignoreCase = true)
+            }) && it.title.contains(searchQuery, ignoreCase = true)
         }
         .sortedBy {
             if (sortAscending) it.year.toInt() else -it.year.toInt()
@@ -287,7 +286,7 @@ fun ViewToggleSwitch(
 
 
 @Composable
-fun MovieListUI(movie: Movies, onItemClicked: () -> Unit) {
+fun MovieListUI(movie: MoviesEntity, onItemClicked: () -> Unit) {
     var isFavorite by remember { mutableStateOf(movie.isFavorite) }
 
     Row(
@@ -329,7 +328,7 @@ fun MovieListUI(movie: Movies, onItemClicked: () -> Unit) {
 
 
 @Composable
-fun MovieGridItem(movie: Movies, onItemClicked: () -> Unit) {
+fun MovieGridItem(movie: MoviesEntity, onItemClicked: () -> Unit) {
     var isFavorite by remember { mutableStateOf(movie.isFavorite) }
 
     Card(
@@ -399,7 +398,7 @@ fun MovieTitle() {
 }
 
 @Composable
-fun MovieDescription(movie: Movies) {
+fun MovieDescription(movie: MoviesEntity) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -407,7 +406,7 @@ fun MovieDescription(movie: Movies) {
     ) {
         Text(movie.year, fontSize = 12.sp, color = Color.Gray)
         Text(movie.runtime, fontSize = 12.sp, color = Color.Gray)
-        Text(movie.genres.joinToString(", "), fontSize = 12.sp, color = Color.Gray)
+        Text(movie.genres, fontSize = 12.sp, color = Color.Gray)
     }
 }
 
