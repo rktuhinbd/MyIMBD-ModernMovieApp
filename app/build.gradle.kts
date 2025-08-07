@@ -5,6 +5,9 @@ plugins {
     alias(libs.plugins.hilt)
     alias(libs.plugins.kotlin.kapt)
 }
+hilt {
+    enableAggregatingTask = false
+}
 
 android {
     namespace = "com.rkt.myimbdmodernmovieapp"
