@@ -1,5 +1,6 @@
 [versions]
 agp = "8.12.0"
+animation = "1.8.3"
 kotlin = "2.2.0"
 coreKtx = "1.16.0"
 junit = "4.13.2"
@@ -16,11 +17,15 @@ room = "2.7.2"
 hilt = "2.57"
 hiltCompiler = "2.57"
 hiltNavigationCompose = "1.2.0"
+uiUtil = "1.8.3"
 viewmodel = "2.9.2"
 coroutines = "1.10.2"
+animationCore = "1.8.3"
 
 [libraries]
+androidx-animation = { module = "androidx.compose.animation:animation", version.ref = "animation" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-ui-util = { module = "androidx.compose.ui:ui-util", version.ref = "uiUtil" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
@@ -58,6 +63,7 @@ hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-com
 androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "viewmodel" }
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
+androidx-animation-core = { group = "androidx.compose.animation", name = "animation-core", version.ref = "animationCore" }
 
 
 [plugins]
