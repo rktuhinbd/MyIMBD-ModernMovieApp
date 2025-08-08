@@ -73,21 +73,25 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.okhttp.logging)
 
-// Room
+    // Room
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     kapt(libs.room.compiler)
 
-// Hilt
+    // Hilt
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
 
-// ViewModel + Coroutines
+    // ViewModel + Coroutines
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
 
+    //Animation
     implementation(libs.androidx.animation)
     implementation(libs.androidx.ui.util)
+
+    //Coil
+    implementation(libs.coil.compose)
 }

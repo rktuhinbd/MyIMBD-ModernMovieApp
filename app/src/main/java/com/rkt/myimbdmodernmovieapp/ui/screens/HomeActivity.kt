@@ -65,6 +65,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
@@ -73,6 +74,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.rkt.myimbdmodernmovieapp.R
 import com.rkt.myimbdmodernmovieapp.model.MoviesEntity
 import com.rkt.myimbdmodernmovieapp.ui.animation.FlyToWishlistState
@@ -353,11 +356,9 @@ fun MovieListUI(
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Image(
-            modifier = Modifier.size(80.dp),
-            painter = painterResource(id = R.drawable.ic_film_reel),
-            contentScale = ContentScale.Inside,
-            contentDescription = null
+        PosterImage(
+            posterUrl = movie.posterUrl,
+            modifier = Modifier.height(80.dp).fillMaxWidth(),
         )
 
         Spacer(modifier = Modifier.width(16.dp))
@@ -417,13 +418,11 @@ fun MovieGridUI(
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Image(
-                    painter = painterResource(R.drawable.ic_film_reel),
-                    contentDescription = null,
+                PosterImage(
+                    posterUrl = movie.posterUrl,
                     modifier = Modifier
                         .size(100.dp)
                         .padding(bottom = 8.dp),
-                    contentScale = ContentScale.Crop
                 )
 
                 Text(
@@ -471,6 +470,20 @@ fun MovieDescription(movie: MoviesEntity) {
     }
 }
 
+@Composable
+private fun PosterImage(posterUrl: String?, modifier: Modifier = Modifier) {
+    AsyncImage(
+        model = ImageRequest.Builder(LocalContext.current)
+            .data(posterUrl)
+            .crossfade(true)
+            .build(),
+        placeholder = painterResource(id = R.drawable.ic_film_reel), // your local asset placeholder
+        error = painterResource(id = R.drawable.ic_film_reel), // fallback if failed
+        contentDescription = "Movie poster",
+        modifier = modifier,
+        contentScale = ContentScale.Crop
+    )
+}
 
 @Composable
 fun FlyToWishlistAnimation(flyState: FlyToWishlistState) {
