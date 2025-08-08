@@ -8,7 +8,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.VectorConverter
-import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -117,12 +116,9 @@ class HomeActivity : ComponentActivity() {
                             .fillMaxSize()
                             .padding(innerPadding),
                         onItemClicked = {
-                            startActivity(
-                                Intent(
-                                    this@HomeActivity,
-                                    MovieInfoActivity::class.java
-                                )
-                            )
+                            val intent = Intent(this, MovieInfoActivity::class.java)
+                            intent.putExtra("movie", it) // movie is MoviesEntity
+                            startActivity(intent)
                         },
                         flyToWishlistState = flyToWishlistState
                     )
@@ -175,7 +171,7 @@ fun HomeScreen(
     modifier: Modifier,
     viewModel: ViewModel = hiltViewModel(), // <-- Inject ViewModel
     flyToWishlistState: FlyToWishlistState,
-    onItemClicked: () -> Unit
+    onItemClicked: (MoviesEntity) -> Unit
 ) {
 
     LaunchedEffect(key1 = Unit) {
@@ -270,7 +266,7 @@ fun HomeScreen(
                         MovieGridUI(
                             movie,
                             flyToWishlistState = flyToWishlistState,
-                            onItemClicked,
+                            onItemClicked = onItemClicked,
                             onFavoriteClicked = {
                                 viewModel.onUiEvent(
                                     ApiUiEvent.UpdateFavorite(
@@ -360,14 +356,18 @@ fun ViewToggleSwitch(
 fun MovieListUI(
     movie: MoviesEntity,
     flyToWishlistState: FlyToWishlistState,
-    onItemClicked: () -> Unit,
+    onItemClicked: (MoviesEntity) -> Unit,
     onFavoriteClicked: () -> Unit
 ) {
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onItemClicked)
+            .clickable(
+                onClick = {
+                    onItemClicked.invoke(movie)
+                }
+            )
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -413,14 +413,18 @@ fun MovieListUI(
 fun MovieGridUI(
     movie: MoviesEntity,
     flyToWishlistState: FlyToWishlistState,
-    onItemClicked: () -> Unit,
+    onItemClicked: (MoviesEntity) -> Unit,
     onFavoriteClicked: () -> Unit
 ) {
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onItemClicked() }
+            .clickable(
+                onClick = {
+                    onItemClicked.invoke(movie)
+                }
+            )
             .padding(4.dp),
         elevation = CardDefaults.cardElevation()
     ) {

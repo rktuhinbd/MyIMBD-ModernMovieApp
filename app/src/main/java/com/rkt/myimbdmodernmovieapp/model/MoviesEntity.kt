@@ -1,9 +1,12 @@
 package com.rkt.myimbdmodernmovieapp.model
 
+import android.os.Parcelable
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.rkt.myimbdmodernmovieapp.data.local.db.MoviesTable
+import kotlinx.parcelize.Parcelize
 
+@Parcelize
 @Entity(tableName = MoviesTable.TABLE_NAME)
 data class MoviesEntity(
     @PrimaryKey(autoGenerate = true)
@@ -17,4 +20,4 @@ data class MoviesEntity(
     val runtime: String,
     val title: String,
     val year: String
-)
+) : Parcelable

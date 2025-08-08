@@ -23,10 +23,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -40,6 +36,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rkt.myimbdmodernmovieapp.R
+import com.rkt.myimbdmodernmovieapp.model.MoviesEntity
 import com.rkt.myimbdmodernmovieapp.ui.theme.MyIMBDModernMovieAppTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -48,11 +45,14 @@ class MovieInfoActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        val movie = intent.getParcelableExtra<MoviesEntity>("movie")
+
         setContent {
             MyIMBDModernMovieAppTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     MovieInfoScreen(
-                        name = "Android",
+                        data = movie,
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(innerPadding)
@@ -66,11 +66,9 @@ class MovieInfoActivity : ComponentActivity() {
 }
 
 @Composable
-fun MovieInfoScreen(name: String, modifier: Modifier = Modifier, onBackClick: () -> Unit) {
+fun MovieInfoScreen(data: MoviesEntity?, modifier: Modifier = Modifier, onBackClick: () -> Unit) {
 
-    var isFavorite by remember {
-        mutableStateOf(false)
-    }
+    if (data == null) return
 
     Column(modifier = modifier) {
 
@@ -96,19 +94,19 @@ fun MovieInfoScreen(name: String, modifier: Modifier = Modifier, onBackClick: ()
             Text(
                 modifier = Modifier
                     .fillMaxWidth(0.5f),
-                text = "$name",
-                style = MaterialTheme.typography.headlineLarge
+                text = data.title,
+                style = MaterialTheme.typography.titleLarge
             )
 
             IconButton(
                 onClick = {
-                    isFavorite = !isFavorite
+
                 },
                 modifier = Modifier.size(24.dp)
             ) {
                 Icon(
                     painter = painterResource(
-                        if (isFavorite)
+                        if (data.isFavorite)
                             R.drawable.ic_favorite_filled_24
                         else
                             R.drawable.ic_favorite_outlined_24
@@ -123,7 +121,7 @@ fun MovieInfoScreen(name: String, modifier: Modifier = Modifier, onBackClick: ()
 
         Text(
             modifier = Modifier.padding(horizontal = 16.dp),
-            text = "1992 | Drama, Crime | 142 min",
+            text = "${data.year} | ${data.genres} | ${data.runtime} min",
             style = TextStyle(
                 fontSize = 16.sp,
                 color = Color.DarkGray,
@@ -146,7 +144,7 @@ fun MovieInfoScreen(name: String, modifier: Modifier = Modifier, onBackClick: ()
 
         Text(
             modifier = Modifier.padding(horizontal = 16.dp),
-            text = "Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency.",
+            text = data.plot,
             style = TextStyle(
                 fontSize = 16.sp,
                 color = Color.DarkGray,
@@ -168,7 +166,7 @@ fun MovieInfoScreen(name: String, modifier: Modifier = Modifier, onBackClick: ()
                     append("Director: ")
                 }
                 withStyle(style = SpanStyle(color = Color.Blue)) {
-                    append("Frank Darabont")
+                    append(data.director)
                 }
             },
             style = MaterialTheme.typography.titleLarge,
@@ -189,7 +187,7 @@ fun MovieInfoScreen(name: String, modifier: Modifier = Modifier, onBackClick: ()
                     append("Casts: ")
                 }
                 withStyle(style = SpanStyle(color = Color.Blue, fontSize = 18.sp)) {
-                    append("Tim Robbins, Morgan Freeman, Bob Gunton, William Sadler")
+                    append(data.actors)
                 }
             },
             style = MaterialTheme.typography.titleLarge,
@@ -203,7 +201,18 @@ fun MovieInfoScreen(name: String, modifier: Modifier = Modifier, onBackClick: ()
 fun MovieInfoScreenPreview() {
     MyIMBDModernMovieAppTheme {
         MovieInfoScreen(
-            name = "Shawshank Redemption",
+            data = MoviesEntity(
+                id = 1,
+                title = "The Shawshank Redemption",
+                year = "1994",
+                runtime = "142",
+                genres = "Drama",
+                director = "Frank Darabont",
+                actors = "Tim Robbins, Morgan Freeman, Bob Gunton",
+                plot = "Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency.",
+                posterUrl = "",
+                isFavorite = true
+            ),
             modifier = Modifier.fillMaxSize()
         ) {
 
