@@ -6,8 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.rkt.myimbdmodernmovieapp.base.ResponseHandler
 import com.rkt.myimbdmodernmovieapp.base.UIState
 import com.rkt.myimbdmodernmovieapp.domain.use_case.GetMoviesUseCase
+import com.rkt.myimbdmodernmovieapp.domain.use_case.GetWishlistUseCase
 import com.rkt.myimbdmodernmovieapp.domain.use_case.UpdateFavoriteUseCase
-import com.rkt.myimbdmodernmovieapp.model.GenreEntity
 import com.rkt.myimbdmodernmovieapp.model.MovieAndGenreResult
 import com.rkt.myimbdmodernmovieapp.model.MoviesEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,7 +21,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ViewModel @Inject constructor(
     private val getMoviesUseCase: GetMoviesUseCase,
-    private val updateFavoriteUseCase: UpdateFavoriteUseCase
+    private val updateFavoriteUseCase: UpdateFavoriteUseCase,
+    private val getWishlistUseCase: GetWishlistUseCase
 ) : ViewModel() {
 
     private val tag = "ViewModel"
@@ -30,6 +31,23 @@ class ViewModel @Inject constructor(
         when (event) {
             is ApiUiEvent.GetMovieList -> getMovieList()
             is ApiUiEvent.UpdateFavorite -> updateFavorite(event.id, event.isFavorite)
+            is ApiUiEvent.GetWishlist -> getWishlist() // <-- Add this
+        }
+    }
+
+    private val _wishlistObserver = MutableStateFlow<UIState<List<MoviesEntity>>>(UIState.Empty())
+    val wishlistObserver = _wishlistObserver.asStateFlow()
+
+    fun getWishlist() {
+        viewModelScope.launch {
+            _wishlistObserver.value = UIState.Loading()
+            try {
+                val wishlist = getWishlistUseCase()
+                _wishlistObserver.value = UIState.Success(wishlist)
+            } catch (e: Exception) {
+                _wishlistObserver.value =
+                    UIState.Error("Failed to load wishlist: ${e.localizedMessage}")
+            }
         }
     }
 
@@ -77,7 +95,7 @@ class ViewModel @Inject constructor(
                     if (currentState is UIState.Success) {
                         val currentData = currentState.data
 
-                        if(currentData == null) return@launch
+                        if (currentData == null) return@launch
 
                         val updatedMovies = currentData.movies.map { movie ->
                             if (movie.id == id) movie.copy(isFavorite = favorite)
@@ -102,4 +120,5 @@ class ViewModel @Inject constructor(
 sealed class ApiUiEvent {
     data object GetMovieList : ApiUiEvent()
     data class UpdateFavorite(val id: Int, val isFavorite: Boolean) : ApiUiEvent()
+    data object GetWishlist : ApiUiEvent() // <-- New event
 }

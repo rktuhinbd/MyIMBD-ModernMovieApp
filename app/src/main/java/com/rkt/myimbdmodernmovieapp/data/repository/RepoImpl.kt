@@ -24,4 +24,8 @@ class RepoImpl @Inject constructor(
     override suspend fun toggleWishlist(id: Int, isFavorite: Boolean) {
         dao.updateFavorite(id = id, isFavorite = isFavorite)
     }
+
+    override suspend fun getWishlist(): List<MoviesEntity> {
+        return dao.getWishlist()
+    }
 }

@@ -8,4 +8,5 @@ interface ApiRepo {
     suspend fun getMovieList(): Response<MoviesResponse>
     suspend fun getMovies(): List<MoviesEntity>
     suspend fun toggleWishlist(id: Int, isFavorite: Boolean)
+    suspend fun getWishlist(): List<MoviesEntity>
 }

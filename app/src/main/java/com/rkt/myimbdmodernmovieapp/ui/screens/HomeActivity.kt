@@ -125,6 +125,16 @@ class HomeActivity : ComponentActivity() {
                                 Icon(
                                     modifier = Modifier
                                         .padding(16.dp)
+                                        .clickable(
+                                            onClick = {
+                                                startActivity(
+                                                    Intent(
+                                                        this@HomeActivity,
+                                                        WishlistActivity::class.java
+                                                    )
+                                                )
+                                            }
+                                        )
                                         .flyToWishlistTarget(flyToWishlistState),
                                     painter = painterResource(R.drawable.ic_favorite_filled_24),
                                     contentDescription = "Wishlist"
