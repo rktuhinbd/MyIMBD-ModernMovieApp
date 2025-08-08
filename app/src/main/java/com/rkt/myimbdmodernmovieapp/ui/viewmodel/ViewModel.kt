@@ -6,13 +6,16 @@ import androidx.lifecycle.viewModelScope
 import com.rkt.myimbdmodernmovieapp.base.ResponseHandler
 import com.rkt.myimbdmodernmovieapp.base.UIState
 import com.rkt.myimbdmodernmovieapp.domain.use_case.GetMoviesUseCase
+import com.rkt.myimbdmodernmovieapp.domain.use_case.GetPaginatedMoviesUseCase
 import com.rkt.myimbdmodernmovieapp.domain.use_case.GetWishlistUseCase
 import com.rkt.myimbdmodernmovieapp.domain.use_case.UpdateFavoriteUseCase
+import com.rkt.myimbdmodernmovieapp.model.GenreEntity
 import com.rkt.myimbdmodernmovieapp.model.MovieAndGenreResult
 import com.rkt.myimbdmodernmovieapp.model.MoviesEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -22,10 +25,17 @@ import javax.inject.Inject
 class ViewModel @Inject constructor(
     private val getMoviesUseCase: GetMoviesUseCase,
     private val updateFavoriteUseCase: UpdateFavoriteUseCase,
-    private val getWishlistUseCase: GetWishlistUseCase
+    private val getWishlistUseCase: GetWishlistUseCase,
+    private val getPaginatedMoviesUseCase: GetPaginatedMoviesUseCase
 ) : ViewModel() {
 
     private val tag = "ViewModel"
+
+    private val pageSize = 10
+    private var currentPage = 0
+    private var isLoadingMore = false
+    private var allDataLoaded = false
+
 
     fun onUiEvent(event: ApiUiEvent) {
         when (event) {
@@ -51,9 +61,56 @@ class ViewModel @Inject constructor(
         }
     }
 
-    private val _movieListObserver =
-        MutableStateFlow<UIState<MovieAndGenreResult>>(UIState.Empty())
+    private val _movieListObserver = MutableStateFlow<UIState<MovieAndGenreResult>>(UIState.Loading())
     val movieListObserver = _movieListObserver.asStateFlow()
+
+
+    fun loadNextPage() {
+        if (isLoadingMore || allDataLoaded) return
+
+        isLoadingMore = true
+
+        viewModelScope.launch {
+            try {
+                val newMovies = getPaginatedMoviesUseCase(pageSize, currentPage * pageSize)
+
+                if (newMovies.isEmpty()) {
+                    allDataLoaded = true
+                    return@launch
+                }
+
+                val currentGenres = (_movieListObserver.value as? UIState.Success)?.data?.genres
+                    ?: getGenres()
+
+                val currentMovies = (_movieListObserver.value as? UIState.Success)?.data?.movies
+                    ?: emptyList()
+
+                val combined = currentMovies + newMovies
+
+                _movieListObserver.value = UIState.Success(
+                    MovieAndGenreResult(combined, currentGenres)
+                )
+
+                currentPage++
+            } catch (e: Exception) {
+                Log.e("ViewModel", "Pagination error: ${e.localizedMessage}")
+            } finally {
+                isLoadingMore = false
+            }
+        }
+    }
+
+    private suspend fun getGenres(): List<GenreEntity> {
+        return try {
+            getMoviesUseCase()
+                .firstOrNull { it is ResponseHandler.Success }
+                ?.let { (it as ResponseHandler.Success).data?.genres } ?: emptyList()
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+
 
     private fun getMovieList() {
         getMoviesUseCase().onEach { response ->

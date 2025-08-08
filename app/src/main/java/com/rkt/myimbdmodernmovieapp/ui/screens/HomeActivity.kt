@@ -32,7 +32,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -58,6 +60,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -186,6 +189,31 @@ fun HomeScreen(
     var viewAsGrid by remember { mutableStateOf(true) }
     var sortAscending by remember { mutableStateOf(true) }
 
+    val gridState = rememberLazyGridState()
+    val listState = rememberLazyListState()
+
+    // Observe scrolling to load next page
+    LaunchedEffect(viewAsGrid, gridState, listState) {
+        snapshotFlow {
+            if (viewAsGrid) {
+                val layoutInfo = gridState.layoutInfo
+                val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+                val totalItems = layoutInfo.totalItemsCount
+                lastVisibleItemIndex to totalItems
+            } else {
+                val layoutInfo = listState.layoutInfo
+                val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+                val totalItems = layoutInfo.totalItemsCount
+                lastVisibleItemIndex to totalItems
+            }
+        }.collect { (lastVisibleItemIndex, totalItems) ->
+            if (lastVisibleItemIndex >= totalItems - 3) {
+                viewModel.loadNextPage()
+            }
+        }
+    }
+
+
     val genres = movieListState.data?.genres ?: emptyList()
     val allMovies = movieListState.data?.movies ?: emptyList()
 
@@ -258,6 +286,7 @@ fun HomeScreen(
             if (viewAsGrid) {
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
+                    state = gridState, // 👈 Add this
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -279,12 +308,15 @@ fun HomeScreen(
                     }
                 }
             } else {
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                LazyColumn(
+                    state = listState, // 👈 Add this
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     items(filteredMovies) { movie ->
                         MovieListUI(
                             movie,
                             flyToWishlistState = flyToWishlistState,
-                            onItemClicked,
+                            onItemClicked = onItemClicked,
                             onFavoriteClicked = {
                                 viewModel.onUiEvent(
                                     ApiUiEvent.UpdateFavorite(
