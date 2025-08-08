@@ -11,7 +11,6 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -90,6 +89,8 @@ import kotlin.math.roundToInt
 @AndroidEntryPoint
 class HomeActivity : ComponentActivity() {
 
+    private val viewModel: ViewModel by viewModels()
+
     private val updateFavoriteLauncher = this.registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -105,7 +106,13 @@ class HomeActivity : ComponentActivity() {
         }
     }
 
-    private val viewModel: ViewModel by viewModels()
+    private val updateWishlistLauncher = this.registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            viewModel.onUiEvent(ApiUiEvent.GetMovieList)
+        }
+    }
 
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -127,12 +134,11 @@ class HomeActivity : ComponentActivity() {
                                         .padding(16.dp)
                                         .clickable(
                                             onClick = {
-                                                startActivity(
-                                                    Intent(
-                                                        this@HomeActivity,
-                                                        WishlistActivity::class.java
-                                                    )
+                                                val intent = Intent(
+                                                    this@HomeActivity,
+                                                    WishlistActivity::class.java
                                                 )
+                                                updateWishlistLauncher.launch(intent)
                                             }
                                         )
                                         .flyToWishlistTarget(flyToWishlistState),

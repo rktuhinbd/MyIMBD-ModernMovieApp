@@ -1,9 +1,7 @@
 package com.rkt.myimbdmodernmovieapp.ui.screens
 
-import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.addCallback
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -17,14 +15,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -44,9 +40,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -67,18 +61,16 @@ class WishlistActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // Handle system back press to send result
-        onBackPressedDispatcher.addCallback(this) {
-            sendUpdatedWishlistResultAndFinish()
-        }
-
         setContent {
             val wishlistState by viewModel.wishlistObserver.collectAsState()
 
             MyIMBDModernMovieAppTheme {
                 WishlistScreen(
                     state = wishlistState,
-                    onBack = { sendUpdatedWishlistResultAndFinish() },
+                    onBack = {
+                        setResult(RESULT_OK)
+                        finish()
+                    },
                     onToggleFavorite = { movie ->
                         // Toggle favorite status, then reload wishlist
                         viewModel.onUiEvent(ApiUiEvent.UpdateFavorite(movie.id, !movie.isFavorite))
@@ -90,20 +82,6 @@ class WishlistActivity : ComponentActivity() {
 
         // Load wishlist on start
         viewModel.onUiEvent(ApiUiEvent.GetWishlist)
-    }
-
-    private fun sendUpdatedWishlistResultAndFinish() {
-        val currentWishlist = viewModel.wishlistObserver.value
-        if (currentWishlist is UIState.Success) {
-            val updatedMovies = currentWishlist.data ?: emptyList()
-            val resultIntent = Intent().apply {
-                putParcelableArrayListExtra("updated_wishlist", ArrayList(updatedMovies))
-            }
-            setResult(RESULT_OK, resultIntent)
-        } else {
-            setResult(RESULT_CANCELED)
-        }
-        finish()
     }
 }
 
@@ -132,6 +110,7 @@ fun WishlistScreen(
                 is UIState.Loading -> {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
+
                 is UIState.Error -> {
                     Text(
                         text = state.error ?: "An error occurred.",
@@ -139,6 +118,7 @@ fun WishlistScreen(
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
+
                 is UIState.Success -> {
                     val wishlist = state.data
                     if (wishlist.isNullOrEmpty()) {
@@ -160,6 +140,7 @@ fun WishlistScreen(
                         }
                     }
                 }
+
                 is UIState.Empty -> {
                     Text(
                         text = "No movies yet.",
@@ -171,7 +152,6 @@ fun WishlistScreen(
         }
     }
 }
-
 
 
 @Composable
