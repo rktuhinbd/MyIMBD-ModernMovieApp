@@ -2,7 +2,6 @@ package com.rkt.myimbdmodernmovieapp.ui.screens
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -26,7 +25,6 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.rkt.myimbdmodernmovieapp.R
-import com.rkt.myimbdmodernmovieapp.base.UIState
 import com.rkt.myimbdmodernmovieapp.ui.theme.MyIMBDModernMovieAppTheme
 import com.rkt.myimbdmodernmovieapp.ui.viewmodel.ApiUiEvent
 import com.rkt.myimbdmodernmovieapp.ui.viewmodel.ViewModel

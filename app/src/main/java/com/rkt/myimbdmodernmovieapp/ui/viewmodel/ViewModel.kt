@@ -31,7 +31,8 @@ class ViewModel @Inject constructor(
         when (event) {
             is ApiUiEvent.GetMovieList -> getMovieList()
             is ApiUiEvent.UpdateFavorite -> updateFavorite(event.id, event.isFavorite)
-            is ApiUiEvent.GetWishlist -> getWishlist() // <-- Add this
+            is ApiUiEvent.GetWishlist -> getWishlist()
+            is ApiUiEvent.UpdateMoviesFromList -> updateMoviesFromList(event.updatedMovies)
         }
     }
 
@@ -115,10 +116,21 @@ class ViewModel @Inject constructor(
         }
     }
 
+    private fun updateMoviesFromList(updatedMovies: List<MoviesEntity>) {
+        val currentState = _movieListObserver.value
+        if (currentState is UIState.Success) {
+            val currentData = currentState.data ?: return
+            val mergedMovies = currentData.movies.map { movie ->
+                updatedMovies.find { it.id == movie.id } ?: movie
+            }
+            _movieListObserver.value = UIState.Success(currentData.copy(movies = mergedMovies))
+        }
+    }
 }
 
 sealed class ApiUiEvent {
     data object GetMovieList : ApiUiEvent()
     data class UpdateFavorite(val id: Int, val isFavorite: Boolean) : ApiUiEvent()
-    data object GetWishlist : ApiUiEvent() // <-- New event
+    data object GetWishlist : ApiUiEvent()
+    data class UpdateMoviesFromList(val updatedMovies: List<MoviesEntity>) : ApiUiEvent()
 }

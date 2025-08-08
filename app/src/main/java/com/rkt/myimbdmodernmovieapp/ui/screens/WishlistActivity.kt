@@ -1,9 +1,12 @@
 package com.rkt.myimbdmodernmovieapp.ui.screens
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.addCallback
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,7 +36,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -46,7 +48,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.rkt.myimbdmodernmovieapp.R
@@ -59,37 +60,53 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class WishlistActivity : ComponentActivity() {
+
+    private val viewModel: ViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // Handle system back press to send result
+        onBackPressedDispatcher.addCallback(this) {
+            sendUpdatedWishlistResultAndFinish()
+        }
+
         setContent {
-            val viewModel: ViewModel = hiltViewModel()
-
-            LaunchedEffect(Unit) {
-                viewModel.onUiEvent(ApiUiEvent.GetWishlist)
-            }
-
             val wishlistState by viewModel.wishlistObserver.collectAsState()
 
             MyIMBDModernMovieAppTheme {
                 WishlistScreen(
                     state = wishlistState,
-                    onBack = { finish() },
+                    onBack = { sendUpdatedWishlistResultAndFinish() },
                     onToggleFavorite = { movie ->
-                        viewModel.onUiEvent(
-                            ApiUiEvent.UpdateFavorite(
-                                movie.id,
-                                !movie.isFavorite
-                            )
-                        )
-                        // Refresh the wishlist
+                        // Toggle favorite status, then reload wishlist
+                        viewModel.onUiEvent(ApiUiEvent.UpdateFavorite(movie.id, !movie.isFavorite))
                         viewModel.onUiEvent(ApiUiEvent.GetWishlist)
                     }
                 )
             }
         }
+
+        // Load wishlist on start
+        viewModel.onUiEvent(ApiUiEvent.GetWishlist)
+    }
+
+    private fun sendUpdatedWishlistResultAndFinish() {
+        val currentWishlist = viewModel.wishlistObserver.value
+        if (currentWishlist is UIState.Success) {
+            val updatedMovies = currentWishlist.data ?: emptyList()
+            val resultIntent = Intent().apply {
+                putParcelableArrayListExtra("updated_wishlist", ArrayList(updatedMovies))
+            }
+            setResult(RESULT_OK, resultIntent)
+        } else {
+            setResult(RESULT_CANCELED)
+        }
+        finish()
     }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -115,7 +132,6 @@ fun WishlistScreen(
                 is UIState.Loading -> {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
-
                 is UIState.Error -> {
                     Text(
                         text = state.error ?: "An error occurred.",
@@ -123,7 +139,6 @@ fun WishlistScreen(
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
-
                 is UIState.Success -> {
                     val wishlist = state.data
                     if (wishlist.isNullOrEmpty()) {
@@ -145,7 +160,6 @@ fun WishlistScreen(
                         }
                     }
                 }
-
                 is UIState.Empty -> {
                     Text(
                         text = "No movies yet.",
@@ -157,6 +171,7 @@ fun WishlistScreen(
         }
     }
 }
+
 
 
 @Composable
@@ -176,7 +191,7 @@ fun WishlistMovieCard(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(movie.posterUrl)
                     .crossfade(true)
-                    .placeholder(R.drawable.ic_film_reel) // your local placeholder
+                    .placeholder(R.drawable.ic_film_reel) // placeholder asset
                     .build(),
                 contentDescription = movie.title,
                 modifier = Modifier
@@ -227,54 +242,3 @@ fun WishlistMovieCard(
     }
 }
 
-
-@Composable
-fun EmptyWishlist(modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Icon(
-            imageVector = Icons.Default.FavoriteBorder,
-            contentDescription = null,
-            tint = Color.LightGray,
-            modifier = Modifier.size(120.dp)
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-        Text(
-            text = "Your movieList is empty!",
-            style = MaterialTheme.typography.titleMedium,
-            color = Color.Gray
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = "Tap the heart icon on a movie to add it here.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = Color.Gray,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 24.dp)
-        )
-    }
-}
-
-// Reuse your Coil image loading composable for poster
-@Composable
-fun MoviePosterImage(posterUrl: String?, modifier: Modifier = Modifier) {
-    AsyncImage(
-        model = posterUrl,
-        placeholder = painterResource(id = R.drawable.ic_film_reel),
-        error = painterResource(id = R.drawable.ic_film_reel),
-        contentDescription = "Movie Poster",
-        contentScale = ContentScale.Crop,
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    MyIMBDModernMovieAppTheme {
-
-    }
-}

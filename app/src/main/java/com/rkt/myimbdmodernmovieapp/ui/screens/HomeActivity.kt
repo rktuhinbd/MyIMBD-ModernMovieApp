@@ -368,7 +368,7 @@ fun MovieListUI(
     ) {
         PosterImage(
             posterUrl = movie.posterUrl,
-            modifier = Modifier.height(80.dp).fillMaxWidth(),
+            modifier = Modifier.size(80.dp),
         )
 
         Spacer(modifier = Modifier.width(16.dp))
@@ -452,6 +452,7 @@ fun MovieGridUI(
                     onFavoriteClicked()
                 },
                 modifier = Modifier
+                    .align(Alignment.TopEnd)
                     .flyToWishlistSource(flyToWishlistState)
             ) {
                 Icon(
