@@ -14,7 +14,7 @@ data class MoviesEntity(
     val actors: String,
     val director: String,
     val genres: String,
-    val isFavorite: Boolean, // this is to track if the movie is on favorite list or not
+    var isFavorite: Boolean, // this is to track if the movie is on favorite list or not
     val plot: String,
     val posterUrl: String,
     val runtime: String,

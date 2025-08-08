@@ -1,5 +1,6 @@
 package com.rkt.myimbdmodernmovieapp.ui.screens
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -23,6 +24,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -35,9 +40,12 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.rkt.myimbdmodernmovieapp.R
 import com.rkt.myimbdmodernmovieapp.model.MoviesEntity
 import com.rkt.myimbdmodernmovieapp.ui.theme.MyIMBDModernMovieAppTheme
+import com.rkt.myimbdmodernmovieapp.ui.viewmodel.ApiUiEvent
+import com.rkt.myimbdmodernmovieapp.ui.viewmodel.ViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -57,6 +65,11 @@ class MovieInfoActivity : ComponentActivity() {
                             .fillMaxSize()
                             .padding(innerPadding)
                     ) {
+                        val resultIntent = Intent().apply {
+                            putExtra("id", it.id)
+                            putExtra("is_favorite", it.isFavorite)
+                        }
+                        setResult(RESULT_OK, resultIntent)
                         finish()
                     }
                 }
@@ -65,15 +78,23 @@ class MovieInfoActivity : ComponentActivity() {
     }
 }
 
-@Composable
-fun MovieInfoScreen(data: MoviesEntity?, modifier: Modifier = Modifier, onBackClick: () -> Unit) {
 
-    if (data == null) return
+@Composable
+fun MovieInfoScreen(
+    data: MoviesEntity?,
+    modifier: Modifier = Modifier,
+    viewModel: ViewModel = hiltViewModel(), // <-- Inject ViewModel
+    onBackClick: (MoviesEntity) -> Unit
+) {
+
+    var dataX = data
+
+    if (dataX == null) return
 
     Column(modifier = modifier) {
 
         IconButton(
-            onClick = onBackClick,
+            onClick = { onBackClick.invoke(dataX) },
             modifier = Modifier.size(48.dp) // default Material size
         ) {
             Icon(
@@ -94,19 +115,29 @@ fun MovieInfoScreen(data: MoviesEntity?, modifier: Modifier = Modifier, onBackCl
             Text(
                 modifier = Modifier
                     .fillMaxWidth(0.5f),
-                text = data.title,
+                text = dataX.title,
                 style = MaterialTheme.typography.titleLarge
             )
 
+
+            var isFavorite by remember { mutableStateOf(dataX.isFavorite) }
+
             IconButton(
                 onClick = {
-
+                    isFavorite = !isFavorite // instantly update UI
+                    dataX.isFavorite = isFavorite
+                    viewModel.onUiEvent(
+                        ApiUiEvent.UpdateFavorite(
+                            dataX.id,
+                            isFavorite
+                        )
+                    )
                 },
                 modifier = Modifier.size(24.dp)
             ) {
                 Icon(
                     painter = painterResource(
-                        if (data.isFavorite)
+                        if (isFavorite)
                             R.drawable.ic_favorite_filled_24
                         else
                             R.drawable.ic_favorite_outlined_24
@@ -121,7 +152,7 @@ fun MovieInfoScreen(data: MoviesEntity?, modifier: Modifier = Modifier, onBackCl
 
         Text(
             modifier = Modifier.padding(horizontal = 16.dp),
-            text = "${data.year} | ${data.genres} | ${data.runtime} min",
+            text = "${dataX.year} | ${dataX.genres} | ${dataX.runtime} min",
             style = TextStyle(
                 fontSize = 16.sp,
                 color = Color.DarkGray,
@@ -144,7 +175,7 @@ fun MovieInfoScreen(data: MoviesEntity?, modifier: Modifier = Modifier, onBackCl
 
         Text(
             modifier = Modifier.padding(horizontal = 16.dp),
-            text = data.plot,
+            text = dataX.plot,
             style = TextStyle(
                 fontSize = 16.sp,
                 color = Color.DarkGray,
@@ -166,7 +197,7 @@ fun MovieInfoScreen(data: MoviesEntity?, modifier: Modifier = Modifier, onBackCl
                     append("Director: ")
                 }
                 withStyle(style = SpanStyle(color = Color.Blue)) {
-                    append(data.director)
+                    append(dataX.director)
                 }
             },
             style = MaterialTheme.typography.titleLarge,
@@ -187,7 +218,7 @@ fun MovieInfoScreen(data: MoviesEntity?, modifier: Modifier = Modifier, onBackCl
                     append("Casts: ")
                 }
                 withStyle(style = SpanStyle(color = Color.Blue, fontSize = 18.sp)) {
-                    append(data.actors)
+                    append(dataX.actors)
                 }
             },
             style = MaterialTheme.typography.titleLarge,

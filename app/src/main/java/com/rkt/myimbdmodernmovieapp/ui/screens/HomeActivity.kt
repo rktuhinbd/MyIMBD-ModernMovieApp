@@ -5,6 +5,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.VectorConverter
@@ -85,6 +87,23 @@ import kotlin.math.roundToInt
 @AndroidEntryPoint
 class HomeActivity : ComponentActivity() {
 
+    private val updateFavoriteLauncher = this.registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            val data = result.data
+            val movieId = data?.getIntExtra("id", -1) ?: -1
+            val isFavorite = data?.getBooleanExtra("is_favorite", false) ?: false
+
+            if (movieId != -1) {
+                // Update ViewModel state for the changed movie
+                viewModel.onUiEvent(ApiUiEvent.UpdateFavorite(movieId, isFavorite))
+            }
+        }
+    }
+
+    private val viewModel: ViewModel by viewModels()
+
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -117,50 +136,13 @@ class HomeActivity : ComponentActivity() {
                             .padding(innerPadding),
                         onItemClicked = {
                             val intent = Intent(this, MovieInfoActivity::class.java)
-                            intent.putExtra("movie", it) // movie is MoviesEntity
-                            startActivity(intent)
+                            intent.putExtra("movie", it)
+                            updateFavoriteLauncher.launch(intent)
                         },
                         flyToWishlistState = flyToWishlistState
                     )
                 }
             }
-        }
-    }
-}
-
-@Composable
-fun FlyToWishlistAnimation(flyState: FlyToWishlistState) {
-    val duration = 600
-    val animatableOffset = remember { Animatable(Offset.Zero, Offset.VectorConverter) }
-
-    if (flyState.isAnimating && flyState.startOffset != null && flyState.endOffset != null) {
-        LaunchedEffect(Unit) {
-            animatableOffset.snapTo(flyState.startOffset!!)
-            animatableOffset.animateTo(
-                targetValue = flyState.endOffset!!,
-                animationSpec = tween(durationMillis = duration, easing = FastOutSlowInEasing)
-            )
-            flyState.isAnimating = false
-        }
-
-        Box(
-            Modifier
-                .fillMaxSize()
-                .zIndex(100f) // Bring above all content
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_favorite_filled_24),
-                contentDescription = null,
-                modifier = Modifier
-                    .offset {
-                        IntOffset(
-                            animatableOffset.value.x.roundToInt(),
-                            animatableOffset.value.y.roundToInt()
-                        )
-                    }
-                    .size(24.dp),
-                tint = Color.Red
-            )
         }
     }
 }
@@ -486,6 +468,44 @@ fun MovieDescription(movie: MoviesEntity) {
         Text(movie.year, fontSize = 12.sp, color = Color.Gray)
         Text(movie.runtime, fontSize = 12.sp, color = Color.Gray)
         Text(movie.genres, fontSize = 12.sp, color = Color.Gray)
+    }
+}
+
+
+@Composable
+fun FlyToWishlistAnimation(flyState: FlyToWishlistState) {
+    val duration = 600
+    val animatableOffset = remember { Animatable(Offset.Zero, Offset.VectorConverter) }
+
+    if (flyState.isAnimating && flyState.startOffset != null && flyState.endOffset != null) {
+        LaunchedEffect(Unit) {
+            animatableOffset.snapTo(flyState.startOffset!!)
+            animatableOffset.animateTo(
+                targetValue = flyState.endOffset!!,
+                animationSpec = tween(durationMillis = duration, easing = FastOutSlowInEasing)
+            )
+            flyState.isAnimating = false
+        }
+
+        Box(
+            Modifier
+                .fillMaxSize()
+                .zIndex(100f) // Bring above all content
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_favorite_filled_24),
+                contentDescription = null,
+                modifier = Modifier
+                    .offset {
+                        IntOffset(
+                            animatableOffset.value.x.roundToInt(),
+                            animatableOffset.value.y.roundToInt()
+                        )
+                    }
+                    .size(24.dp),
+                tint = Color.Red
+            )
+        }
     }
 }
 
